@@ -20,7 +20,12 @@ mysqlConnection.connect((err) => {
     }
 });
 
-mongoose.connect(process.env.DB_URI).then(result => console.log("MongoDB connected!")).catch(err => console.log(err));
+mongoose.connect(
+    process.env.DB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    }
+).then(result => console.log("MongoDB connected!")).catch(err => console.log(err));
 
 app.use("/users", userRouter);
 app.use("/routine", routineRouter);
