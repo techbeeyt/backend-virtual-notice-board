@@ -83,6 +83,8 @@ const authUser = async(req, res) => {
                 }
             }
         })
+    } else {
+        res.send({ success: false, message: "This email is not registered" })
     }
 }
 
