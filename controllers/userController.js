@@ -42,7 +42,7 @@ const create_new_user = (req, res) => {
     });
 };
 
-const auth_user = (req, res) => {
+const auth_user = async(req, res) => {
     const { email, password } = req.body;
     const qry = `SELECT password FROM students WHERE email = '${email}'`;
     const qry_full_user = `SELECT * FROM students WHERE email = '${email}'`;
@@ -52,7 +52,7 @@ const auth_user = (req, res) => {
             res.send({ success: false, message: "Invalid Credentials" });
             return;
         }
-        await bcrypt.compare(password, result[0].password, (err, res_2) => {
+        bcrypt.compare(password, result[0].password, (err, res_2) => {
             if (err) {
                 console.log(err);
             } else {
@@ -74,22 +74,54 @@ const auth_user = (req, res) => {
 };
 
 
-const createUser = (req, res) => {
+const createUser = async(req, res) => {
     const id = Date.now();
     const { full_name, email, password, roll, series, department, section } = req.body;
-    const user = new Users({ id, full_name, email, roll, password, series, department, section });
-    user.save()
-        .then(result => {
-            res.send({ success: true, message: "New user created successfully" })
-        }).catch(err => {
-            res.send({ success: false, message: err.message });
-            console.log(err);
-        });
+
+    const abc = await Users.findOne({ $or: [{ email: email }, { roll: roll }] });
+    if (abc) {
+        if (abc.email === email) {
+            res.send({ success: false, message: "This email already exists" });
+        }
+        if (abc.roll === roll) {
+            res.send({ success: false, message: "This roll already exists" });
+        }
+    } else {
+        const hashedPasword = await bcrypt.hash(password, 12);
+        const user = new Users({ id, full_name, email, roll, password: hashedPasword, series, department, section });
+
+        user.save()
+            .then(result => {
+                console.log(abc);
+                res.send({ success: true, message: "New user created successfully" });
+
+            }).catch(err => {
+                res.send({ success: false, message: err.message });
+                console.log(err);
+            });
+    }
+
+}
+
+const authUser = async(req, res) => {
+    const { email, password } = req.body;
+    const matchUser = await Users.findOne({ email: email });
+    if (matchUser) {
+        console.log(matchUser)
+        bcrypt.compare(password, matchUser.password, (err, result) => {
+            if (err) {
+                console.log(err);
+            } else {
+                res.send({ success: true, message: "User Authenticated successfully", user: matchUser });
+            }
+        })
+    }
 }
 
 module.exports = {
     get_all_user,
     create_new_user,
     auth_user,
-    createUser
+    createUser,
+    authUser
 };
