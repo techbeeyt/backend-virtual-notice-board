@@ -3,44 +3,6 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Users = require("../models/userModel");
 
-const get_all_user = (req, res) => {
-    const qry = "SELECT * FROM students";
-    mysqlConnection.query(qry, (err, result) => {
-        res.send(result);
-    });
-};
-
-const create_new_user = (req, res) => {
-    const { roll, full_name, email, password, series, department, section } =
-    req.body;
-    const check_roll_email = `SELECT roll, email FROM students WHERE roll='${roll}' or email='${email}'`;
-    mysqlConnection.query(check_roll_email, async(err, result) => {
-        if (err) throw err;
-        if (result.length > 0) {
-            if (result[0].email == email) {
-                res.send({
-                    success: false,
-                    message: "This email is already registered",
-                });
-            } else if (result[0].roll == roll) {
-                res.json({
-                    success: false,
-                    message: "This roll is already registered",
-                });
-            }
-        } else {
-            const id = Date.now();
-            const hashedPasword = await bcrypt.hash(password, 12);
-            const create_user_query = `INSERT INTO students (id, roll, full_name, email, password, series, department, section) VALUES (${id}, ${roll}, '${full_name}', '${email}', '${hashedPasword}', '${series}', '${department}', '${section}')`;
-            mysqlConnection.query(create_user_query, (err, result) => {
-                if (err) throw err;
-                else {
-                    res.send({ success: true });
-                }
-            });
-        }
-    });
-};
 
 const auth_user = async(req, res) => {
     const { email, password } = req.body;
@@ -112,15 +74,17 @@ const authUser = async(req, res) => {
             if (err) {
                 console.log(err);
             } else {
-                res.send({ success: true, message: "User Authenticated successfully", user: matchUser });
+                if (result) {
+                    res.send({ success: true, message: "User Authenticated successfully", user: matchUser });
+                } else {
+                    res.send({ success: false, message: "Password does not match" });
+                }
             }
         })
     }
 }
 
 module.exports = {
-    get_all_user,
-    create_new_user,
     auth_user,
     createUser,
     authUser
