@@ -75,7 +75,8 @@ const auth_user = (req, res) => {
 
 
 const createUser = (req, res) => {
-    const { id, full_name, email, password, roll, series, department, section } = req.body;
+    const id = Date.now();
+    const { full_name, email, password, roll, series, department, section } = req.body;
     const user = new Users({ id, full_name, email, roll, password, series, department, section });
     user.save()
         .then(result => {
