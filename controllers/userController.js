@@ -69,14 +69,16 @@ const authUser = async(req, res) => {
     const { email, password } = req.body;
     const matchUser = await Users.findOne({ email: email });
     if (matchUser) {
-        console.log(matchUser)
+        console.log("auth--user_found")
         bcrypt.compare(password, matchUser.password, (err, result) => {
             if (err) {
                 console.log(err);
             } else {
                 if (result) {
+                    console.log("auth--password_matched");
                     res.send({ success: true, message: "User Authenticated successfully", user: matchUser });
                 } else {
+                    console.log("auth--password_does_not_match")
                     res.send({ success: false, message: "Password does not match" });
                 }
             }
