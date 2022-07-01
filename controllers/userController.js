@@ -1,6 +1,7 @@
 const mysqlConnection = require("../models/db_connection");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const Users = require("../models/userModel");
 
 const get_all_user = (req, res) => {
     const qry = "SELECT * FROM students";
@@ -29,15 +30,6 @@ const create_new_user = (req, res) => {
             }
         } else {
             const id = Date.now();
-            console.log({
-                roll,
-                full_name,
-                email,
-                password,
-                series,
-                department,
-                section,
-            });
             const hashedPasword = await bcrypt.hash(password, 12);
             const create_user_query = `INSERT INTO students (id, roll, full_name, email, password, series, department, section) VALUES (${id}, ${roll}, '${full_name}', '${email}', '${hashedPasword}', '${series}', '${department}', '${section}')`;
             mysqlConnection.query(create_user_query, (err, result) => {
@@ -53,24 +45,50 @@ const create_new_user = (req, res) => {
 const auth_user = (req, res) => {
     const { email, password } = req.body;
     const qry = `SELECT password FROM students WHERE email = '${email}'`;
+    const qry_full_user = `SELECT * FROM students WHERE email = '${email}'`;
     mysqlConnection.query(qry, async(err, result) => {
         if (err) console.log(err);
+        if (result.length == 0) {
+            res.send({ success: false, message: "Invalid Credentials" });
+            return;
+        }
         await bcrypt.compare(password, result[0].password, (err, res_2) => {
             if (err) {
                 console.log(err);
             } else {
                 if (res_2) {
-                    res.send({ message: "User autheticated" });
+                    mysqlConnection.query(qry_full_user, async(err, result_2) => {
+                        res.send({
+                            success: true,
+                            message: "User autheticated",
+                            user: result_2,
+                        });
+                    });
                 } else {
-                    res.send({ message: "Invalid Credentials" });
+                    console.log("User failed");
+                    res.send({ success: false, message: "Wrong password!" });
                 }
             }
         });
     });
 };
 
+
+const createUser = (req, res) => {
+    const { id, full_name, email, password, roll, series, department, section } = req.body;
+    const user = new Users({ id, full_name, email, roll, password, series, department, section });
+    user.save()
+        .then(result => {
+            res.send({ success: true, message: "New user created successfully" })
+        }).catch(err => {
+            res.send({ success: false, message: err.message });
+            console.log(err);
+        });
+}
+
 module.exports = {
     get_all_user,
     create_new_user,
     auth_user,
+    createUser
 };
