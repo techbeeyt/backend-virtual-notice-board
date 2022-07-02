@@ -1,26 +1,22 @@
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+const jwt = require('jwt-simple');
 const Users = require("../models/userModel");
 
 const createUser = async(req, res) => {
     const id = Date.now();
     const { full_name, email, password, roll, series, department, section } = req.body;
 
-    const abc = await Users.findOne({ $or: [{ email: email }, { roll: roll }] });
-    if (abc) {
-        if (abc.email === email) {
+    const isExist = await Users.findOne({ $or: [{ email: email }, { roll: roll }] });
+    if (isExist) {
+        if (isExist.email === email) {
             res.send({ success: false, message: "This email already exists" });
-        }
-        if (abc.roll === roll) {
+        } else if (isExist.roll === roll) {
             res.send({ success: false, message: "This roll already exists" });
         }
     } else {
-        const hashedPasword = await bcrypt.hash(password, 12);
-        const user = new Users({ id, full_name, email, roll, password: hashedPasword, series, department, section });
-
+        const user = new Users({ id, full_name, email, roll, password, series, department, section });
         user.save()
             .then(result => {
-                console.log(abc);
+                console.log(isExist);
                 res.send({ success: true, message: "New user created successfully" });
 
             }).catch(err => {
@@ -32,27 +28,22 @@ const createUser = async(req, res) => {
 }
 
 const authUser = async(req, res) => {
-    const { email, password } = req.body;
-    const matchUser = await Users.findOne({ email: email });
-    if (matchUser) {
-        console.log("auth--user_found")
-        bcrypt.compare(password, matchUser.password, (err, result) => {
-            if (err) {
-                console.log(err);
-            } else {
-                if (result) {
-                    console.log("auth--password_matched");
-                    res.send({ success: true, message: "User Authenticated successfully", user: matchUser });
+    Users.findOne({
+        email: req.body.email
+    }, (err, user) => {
+        if (err) throw err;
+        if (!user) res.send({ success: false, message: "This email is not registered" });
+        else {
+            user.comparePassword(req.body.password, (err, isMatch) => {
+                if (isMatch && !err) {
+                    var token = jwt.encode(user, process.env.SECRET);
+                    res.send({ success: true, token: token });
                 } else {
-                    console.log("auth--password_does_not_match")
-                    res.send({ success: false, message: "Password does not match" });
+                    res.send({ success: false, message: "Incorrect Password", error: err });
                 }
-            }
-        })
-    } else {
-        console.log("auth--user_not_found");
-        res.send({ success: false, message: "This email is not registered" })
-    }
+            })
+        }
+    })
 }
 
 module.exports = {

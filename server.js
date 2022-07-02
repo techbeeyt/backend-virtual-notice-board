@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cors = require('cors');
 const userRouter = require("./routes/userRouter");
 const routineRouter = require("./routes/routineRouter");
+const passport = require('passport');
 const dotenv = require("dotenv");
 const connectDB = require("./config/database.config");
 dotenv.config({ path: "./.env" });
@@ -19,7 +20,8 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-
+app.use(passport.initialize())
+require('./config/passport')(passport);
 
 app.use("/users", userRouter);
 app.use("/routine", routineRouter);
