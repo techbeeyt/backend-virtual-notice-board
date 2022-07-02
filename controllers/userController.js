@@ -1,40 +1,6 @@
-const mysqlConnection = require("../models/db_connection");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Users = require("../models/userModel");
-
-
-const auth_user = async(req, res) => {
-    const { email, password } = req.body;
-    const qry = `SELECT password FROM students WHERE email = '${email}'`;
-    const qry_full_user = `SELECT * FROM students WHERE email = '${email}'`;
-    mysqlConnection.query(qry, async(err, result) => {
-        if (err) console.log(err);
-        if (result.length == 0) {
-            res.send({ success: false, message: "Invalid Credentials" });
-            return;
-        }
-        bcrypt.compare(password, result[0].password, (err, res_2) => {
-            if (err) {
-                console.log(err);
-            } else {
-                if (res_2) {
-                    mysqlConnection.query(qry_full_user, async(err, result_2) => {
-                        res.send({
-                            success: true,
-                            message: "User autheticated",
-                            user: result_2,
-                        });
-                    });
-                } else {
-                    console.log("User failed");
-                    res.send({ success: false, message: "Wrong password!" });
-                }
-            }
-        });
-    });
-};
-
 
 const createUser = async(req, res) => {
     const id = Date.now();
@@ -84,12 +50,12 @@ const authUser = async(req, res) => {
             }
         })
     } else {
+        console.log("auth--user_not_found");
         res.send({ success: false, message: "This email is not registered" })
     }
 }
 
 module.exports = {
-    auth_user,
     createUser,
     authUser
 };
