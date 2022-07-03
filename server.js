@@ -24,7 +24,7 @@ app.use(passport.initialize())
 require('./config/passport')(passport);
 
 app.use("/users", userRouter);
-app.use("/routine", routineRouter);
+app.use("/routines", routineRouter);
 
 const PORT = process.env.PORT || 3000;
 
