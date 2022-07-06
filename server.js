@@ -2,8 +2,9 @@ const express = require("express");
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
 const cors = require('cors');
-const userRouter = require("./routes/userRouter");
-const routineRouter = require("./routes/routineRouter");
+const userRouter = require("./routes/user.router");
+const routineRouter = require("./routes/routine.router");
+const taskRouter = require("./routes/task.router");
 const passport = require('passport');
 const dotenv = require("dotenv");
 const connectDB = require("./config/database.config");
@@ -25,6 +26,7 @@ require('./config/passport')(passport);
 
 app.use("/users", userRouter);
 app.use("/routines", routineRouter);
+app.use("/tasks", taskRouter);
 
 const PORT = process.env.PORT || 3000;
 

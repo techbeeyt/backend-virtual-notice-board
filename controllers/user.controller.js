@@ -1,5 +1,5 @@
 const jwt = require('jwt-simple');
-const Users = require("../models/userModel");
+const Users = require("../models/user.model");
 
 const createUser = async(req, res) => {
     const id = Date.now();
@@ -15,8 +15,7 @@ const createUser = async(req, res) => {
     } else {
         const user = new Users({ id, full_name, email, roll, password, series, department, section });
         user.save()
-            .then(result => {
-                console.log(isExist);
+            .then((result) => {
                 res.send({ success: true, message: "New user created successfully" });
 
             }).catch(err => {
@@ -25,6 +24,17 @@ const createUser = async(req, res) => {
             });
     }
 
+}
+
+const getUserInfo = (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const data = jwt.decode(token, process.env.SECRET);
+    Users.findOne({ _id: data._id }, (err, user) => {
+        if (err) throw err;
+        else {
+            res.send({ success: true, data: user });
+        }
+    })
 }
 
 const authUser = async(req, res) => {
@@ -46,7 +56,33 @@ const authUser = async(req, res) => {
     })
 }
 
+/*
+    * does: Updates Particular Users Data
+    ! accessed by: only [Logged In User]
+*/
+
+const updateUser = async(req, res) => {
+    const { id, full_name, email, password, roll, series, department, section } = req.body;
+    Users.updateOne({ _id: id }, { $set: { "full_name": full_name, "email": email, "password": password, "roll": roll, "series": series, "department": department, "section": section } }, (err, result) => {
+        if (err) throw err;
+        res.send({ success: false, message: result });
+    })
+}
+
+const deleteUser = async(req, res) => {
+    const { id } = req.body;
+    Users.deleteOne({ _id: id }, (err, result) => {
+        if (err) throw err;
+        res.send({ success: false, message: result });
+    })
+}
+
+
+
 module.exports = {
     createUser,
-    authUser
+    getUserInfo,
+    authUser,
+    updateUser,
+    deleteUser
 };
