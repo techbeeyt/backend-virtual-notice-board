@@ -1,5 +1,6 @@
 const jwt = require('jwt-simple');
 const Users = require("../models/user.model");
+const Admins = require("../models/adminList");
 
 const createUser = async(req, res) => {
     const id = Date.now();
@@ -85,11 +86,26 @@ const deleteUser = async(req, res) => {
 }
 
 
+const isAdmin = async(req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const data = jwt.decode(token, process.env.SECRET);
+    Admins.findOne({ adminID: data._id }, (err, user) => {
+        if (err) throw err;
+        if (user) {
+            res.send({ success: true });
+        } else {
+            res.send({ success: false });
+        }
+    })
+}
+
+
 
 module.exports = {
     createUser,
     getUserInfo,
     authUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    isAdmin
 };

@@ -10,5 +10,6 @@ router.post("/registration", userController.createUser);
 router.post("/login", userController.authUser);
 router.post("/update-info", authUser(), authOwn(), userController.updateUser);
 router.post("/delete-user", authUser(), authAdmin(PERMISSION.WRITE), userController.deleteUser);
+router.get("/admin", authUser(), userController.isAdmin);
 
 module.exports = router;
