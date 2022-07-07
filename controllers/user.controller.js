@@ -46,8 +46,15 @@ const authUser = async(req, res) => {
         else {
             user.comparePassword(req.body.password, (err, isMatch) => {
                 if (isMatch && !err) {
+                    const userInfo = {
+                        full_name: user.full_name,
+                        email: user.email,
+                        roll: user.roll
+                    }
+                    console.log(userInfo);
+
                     var token = jwt.encode(user, process.env.SECRET);
-                    res.send({ success: true, token: token });
+                    res.send({ success: true, token: token, data: userInfo });
                 } else {
                     res.send({ success: false, message: "Incorrect Password", error: err });
                 }
