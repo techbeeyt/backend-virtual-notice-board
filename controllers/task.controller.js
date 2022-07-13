@@ -33,7 +33,7 @@ const getBySection = async(req, res) => {
     const { series, department, section } = data;
 
     Tasks.find({ $and: [{ series: series }, { department: department }, { section: section }] }, (err, result) => {
-        res.send(result);
+        res.send({ success: true, count: result.length, data: result });
     })
 }
 
